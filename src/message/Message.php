@@ -3,6 +3,7 @@
 namespace devgroup\grayii\message;
 
 use Gelf\MessageInterface;
+use yii\base\Component;
 use yii\base\InvalidArgumentException;
 use yii\log\Logger;
 
@@ -39,6 +40,21 @@ class Message extends Component implements MessageInterface
     ];
 
     /**
+     * @event Event an event that is triggered when the message is initialized via [[init()]].
+     */
+    const EVENT_INIT = 'init';
+
+    /**
+     * @event Event an event that is triggered when the message is about to be published via [[GelfTarget::publishMessage()]].
+     */
+    const BEFORE_PUBLISH = 'beforePublish';
+
+    /**
+     * @event Event an event that is triggered after the message is published via [[GelfTarget::publishMessage()]].
+     */
+    const AFTER_PUBLISH = 'afterPublish';
+
+    /**
      * @inheritDoc
      */
     public function init()
@@ -67,6 +83,11 @@ class Message extends Component implements MessageInterface
         return $this->_version;
     }
 
+    /**
+     * Sets message version
+     *
+     * @param string $version
+     */
     public function setVersion($version)
     {
         $this->_version = $version;
@@ -80,6 +101,11 @@ class Message extends Component implements MessageInterface
         return $this->_host;
     }
 
+    /**
+     * Sets message host
+     *
+     * @param string $host
+     */
     public function setHost($host)
     {
         $this->_host = $host;
@@ -93,6 +119,11 @@ class Message extends Component implements MessageInterface
         return $this->_shortMessage;
     }
 
+    /**
+     * Sets short message
+     *
+     * @param string $message
+     */
     public function setShortMessage($message)
     {
         $this->_shortMessage = $message;
@@ -106,6 +137,11 @@ class Message extends Component implements MessageInterface
         return $this->_fullMessage;
     }
 
+    /**
+     * Sets full message
+     *
+     * @param string $message
+     */
     public function setFullMessage($message)
     {
         $this->_fullMessage = $message;
@@ -119,6 +155,11 @@ class Message extends Component implements MessageInterface
         return $this->_timestamp;
     }
 
+    /**
+     * Sets message timestamp
+     *
+     * @param integer $timestamp
+     */
     public function setTimestamp($timestamp)
     {
         $this->_timestamp = $timestamp;
@@ -126,12 +167,19 @@ class Message extends Component implements MessageInterface
 
     /**
      * @inheritDoc
+     *
+     * @return string
      */
     public function getLevel()
     {
         return $this->_level;
     }
 
+    /**
+     * Sets message level
+     *
+     * @param string $level
+     */
     public function setLevel($level)
     {
         if (!in_array($level, array_keys(self::LOG_LEVELS))) {
@@ -146,7 +194,7 @@ class Message extends Component implements MessageInterface
      */
     public function getSyslogLevel()
     {
-        return ;
+        return self::LOG_LEVELS[$this->getLevel()];
     }
 
     /**
@@ -154,7 +202,7 @@ class Message extends Component implements MessageInterface
      */
     public function getFacility()
     {
-        return $this->_facility
+        return $this->_facility;
     }
 
     /**
@@ -162,7 +210,17 @@ class Message extends Component implements MessageInterface
      */
     public function getFile()
     {
-        return $this->_file
+        return $this->_file;
+    }
+
+    /**
+     * Sets message file
+     *
+     * @param string $file
+     */
+    public function setFile($file)
+    {
+        $this->_file = $file;
     }
 
     /**
@@ -170,7 +228,17 @@ class Message extends Component implements MessageInterface
      */
     public function getLine()
     {
-        return $this->_line
+        return $this->_line;
+    }
+
+    /**
+     * Sets message file line
+     *
+     * @param integer $line
+     */
+    public function setLine($line)
+    {
+        $this->_line = $line;
     }
 
     /**
@@ -178,13 +246,13 @@ class Message extends Component implements MessageInterface
      */
     public function getAdditional($key)
     {
-        if (!isset($this->additionals[$key])) {
+        if (!isset($this->_additionals[$key])) {
             throw new RuntimeException(
                 sprintf("Additional key '%s' is not defined", $key)
             );
         }
 
-        return $this->additionals[$key];
+        return $this->_additionals[$key];
     }
 
     /**
@@ -192,16 +260,22 @@ class Message extends Component implements MessageInterface
      */
     public function hasAdditional($key)
     {
-        return isset($this->additionals[$key]);
+        return isset($this->_additionals[$key]);
     }
 
-    public function addAdditional($key, $value)
+    /**
+     * sets additional message fields
+     *
+     * @param string $key
+     * @param string $value
+     */
+    public function setAdditional($key, $value)
     {
         if (!$key) {
             throw new RuntimeException("Additional field key cannot be empty");
         }
 
-        $this->additionals[$key] = $value;
+        $this->_additionals[$key] = $value;
     }
 
     /**
@@ -209,12 +283,7 @@ class Message extends Component implements MessageInterface
      */
     public function getAllAdditionals()
     {
-        return $this->additionals;
-    }
-
-    protected function getSyslogLevel()
-    {
-        return 
+        return $this->_additionals;
     }
 
     /**

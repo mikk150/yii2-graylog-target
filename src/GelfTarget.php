@@ -59,7 +59,7 @@ class GelfTarget extends Target
         if (!$this->messageConfig) {
             $this->messageConfig = [
                 'class' => Message::class
-            ]
+            ];
         }
 
         $this->container->set(TransportInterface::class, $this->transport);
@@ -75,6 +75,7 @@ class GelfTarget extends Target
         $messageGenerator = $this->messageGeneratorExtractor();
         foreach ($messageGenerator as $message) {
             $gelfMessage = $this->createMessage($message);
+
             $this->publishMessage($gelfMessage);
         }
     }
@@ -128,7 +129,7 @@ class GelfTarget extends Target
     protected function createMessage($data)
     {
         list($msg, $level, $category, $time) = $data;
-        
+
         /**
          * @var Message $message
          */
