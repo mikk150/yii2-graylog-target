@@ -5,9 +5,9 @@
 
 namespace devgroup\grayii;
 
+use devgroup\grayii\message\Message;
 use devgroup\grayii\publisher\Publisher;
 use devgroup\grayii\transport\HttpTransport;
-use Gelf\Message;
 use Gelf\MessageValidator;
 use Gelf\MessageValidatorInterface;
 use Gelf\PublisherInterface;
@@ -15,6 +15,7 @@ use Gelf\Transport\TransportInterface;
 use Psr\Log\LogLevel;
 use Yii;
 use yii\di\Container;
+use yii\di\Instance;
 use yii\log\Logger;
 use yii\log\Target;
 
@@ -35,6 +36,8 @@ class GelfTarget extends Target
     public $messageValidator = [
         'class' => MessageValidator::class
     ];
+
+    public $messageConfig;
 
     /**
      * @var Container
@@ -62,6 +65,12 @@ class GelfTarget extends Target
         parent::init();
         $this->appName = $this->appName ?: Yii::$app->id;
         $this->container = $this->container ?: Yii::$container;
+
+        if (!$this->messageConfig) {
+            $this->messageConfig = [
+                'class' => Message::class
+            ]
+        }
 
         $this->container->set(TransportInterface::class, $this->transport);
         $this->container->set(MessageValidatorInterface::class, $this->messageValidator);
@@ -129,7 +138,11 @@ class GelfTarget extends Target
     protected function createMessage($data)
     {
         list($msg, $level, $category, $time) = $data;
-        $message = new Message();
+        
+        /**
+         * @var Message $message
+         */
+        $message = Instance::ensure($this->messageConfig, Message::class);
 
         $message->setLevel($this->yii2LevelToPsrLevel($level));
         $message->setTimestamp($time);
@@ -186,8 +199,10 @@ class GelfTarget extends Target
     /**
      * @param $gelfMessage
      */
-    protected function publishMessage($gelfMessage)
+    protected function publishMessage(Message $gelfMessage)
     {
+        $gelfMessage->trigger(Message::BEFORE_PUBLISH);
         $this->getPublisher()->publish($gelfMessage);
+        $gelfMessage->trigger(Message::AFTER_PUBLISH);
     }
 }
