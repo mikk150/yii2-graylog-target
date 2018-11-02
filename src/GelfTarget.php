@@ -47,16 +47,6 @@ class GelfTarget extends Target
     public $version = '1.1';
     public $appName;
 
-    protected $_logLevels = [
-        Logger::LEVEL_ERROR => LogLevel::ERROR,
-        Logger::LEVEL_INFO => LogLevel::INFO,
-        Logger::LEVEL_PROFILE_BEGIN => LogLevel::DEBUG,
-        Logger::LEVEL_PROFILE => LogLevel::DEBUG,
-        Logger::LEVEL_PROFILE_END => LogLevel::DEBUG,
-        Logger::LEVEL_TRACE => LogLevel::DEBUG,
-        Logger::LEVEL_WARNING => LogLevel::WARNING,
-    ];
-
     /**
      * @inheritdoc
      */
@@ -144,7 +134,7 @@ class GelfTarget extends Target
          */
         $message = Instance::ensure($this->messageConfig, Message::class);
 
-        $message->setLevel($this->yii2LevelToPsrLevel($level));
+        $message->setLevel($level);
         $message->setTimestamp($time);
         $message->setVersion($this->version);
         $message->setHost($this->appName ?: Yii::$app->id);
@@ -185,15 +175,6 @@ class GelfTarget extends Target
         $message->setAdditional('category', $category);
 
         return $message;
-    }
-
-    /**
-     * @param int $yiiLevel
-     * @return mixed
-     */
-    protected function yii2LevelToPsrLevel($yiiLevel)
-    {
-        return $this->_logLevels[$yiiLevel];
     }
 
     /**

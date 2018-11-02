@@ -3,6 +3,7 @@
 namespace devgroup\grayii\message;
 
 use Gelf\MessageInterface;
+use yii\base\InvalidArgumentException;
 use yii\log\Logger;
 
 class Message extends Component implements MessageInterface
@@ -131,6 +132,15 @@ class Message extends Component implements MessageInterface
         return $this->_level;
     }
 
+    public function setLevel($level)
+    {
+        if (!in_array($level, array_keys(self::LOG_LEVELS))) {
+            throw new InvalidArgumentException('Level "' . $level . '" does not exist');
+        }
+
+        $this->_level = $level;
+    }
+
     /**
      * @inheritDoc
      */
@@ -200,6 +210,11 @@ class Message extends Component implements MessageInterface
     public function getAllAdditionals()
     {
         return $this->additionals;
+    }
+
+    protected function getSyslogLevel()
+    {
+        return 
     }
 
     /**
